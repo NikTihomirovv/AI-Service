@@ -1,0 +1,14 @@
+ollama:
+  name: "deepseek-r1:7b"
+  base_url: "http://ollama:11434"
+  stream: false
+  temperature: 0.7
+  top_p: 0.9
+  max_tokens: 8192
+  connect_timeout: 5
+  read_timeout: 300
+  
+pollinations:
+  name: "pollinations"
+  base_url: "https://image.pollinations.ai"
+  timeout: 120
