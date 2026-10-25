@@ -8,6 +8,7 @@ from config.dataclasses import (
     AppConfig,
     OllamaConfig,
     PollinationsConfig,
+    WhisperConfig,
 )
 
 
@@ -30,4 +31,5 @@ def load_config() -> AppConfig:
     return AppConfig(
         ollama=OllamaConfig(**ollama_data),
         pollinations=PollinationsConfig(**data["pollinations"]),
+        whisper=WhisperConfig(**data["whisper"]),
     )

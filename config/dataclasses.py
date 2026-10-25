@@ -25,8 +25,22 @@ class PollinationsConfig:
 
 
 @dataclass(frozen=True)
+class WhisperConfig:
+    """Настройки модели распознавания аудио."""
+
+    name: str
+    device: str
+    compute_type: str
+    language: str | None
+    beam_size: int
+
+
+@dataclass(frozen=True)
 class AppConfig:
     """Общая конфигурация AI-Service."""
 
     ollama: OllamaConfig
     pollinations: PollinationsConfig
+    whisper: WhisperConfig
+
+

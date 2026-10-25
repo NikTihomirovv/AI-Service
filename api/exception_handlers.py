@@ -8,6 +8,7 @@ from service.exceptions import (
     TextModelError,
     ImageModelError,
 )
+from service.exceptions import AudioTranscriptionError
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,23 @@ def image_model_error_handler(
         status_code=502,
         content={
             "error": "IMAGE_MODEL_ERROR",
+            "detail": str(exc),
+        },
+    )
+
+
+def audio_transcription_error_handler(
+    request: Request,
+    exc: AudioTranscriptionError,
+) -> JSONResponse:
+    """Обрабатывает ошибки распознавания аудио."""
+
+    logger.error("Audio transcription error: %s", exc)
+
+    return JSONResponse(
+        status_code=502,
+        content={
+            "error": "AUDIO_TRANSCRIPTION_ERROR",
             "detail": str(exc),
         },
     )

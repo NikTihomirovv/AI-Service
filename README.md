@@ -1,75 +1,61 @@
-# AI-Service
-
-Микросервис для генерации текста и изображений с использованием локальных и внешних AI-моделей.
-
-Разработан на **Python + FastAPI**. Предоставляет единый REST API для взаимодействия с AI-провайдерами.
-
-## Возможности
-
-- Генерация текста через локальную Ollama.
-- Генерация изображений через Pollinations.
-- Единый HTTP API для других приложений.
+AI-Service
+Микросервис на Python + FastAPI для работы с локальными и внешними AI-моделями. Предоставляет REST API для генерации текста и изображений, а также распознавания аудио с пословными таймкодами.
+Возможности
+- Генерация текста через локальную Ollama (DeepSeek-R1 7B).
+- Генерация изображений через Pollinations с возвратом Base64.
+- Распознавание речи и вокала через faster-whisper.
+- Возврат слов с временными метками start и end.
+- Необязательная текстовая подсказка lyrics для распознавания песен.
 - Конфигурация через YAML и переменные окружения.
-- Dependency Injection и разделение бизнес-логики и AI-клиентов.
-- Централизованная обработка ошибок и логирование.
-- Запуск через Docker Compose.
+- Разделение на API, сервисный слой и AI-клиенты с использованием Protocol и Dependency Injection.
+- Логирование, обработка ошибок, запуск через Docker Compose.
 - Поддержка NVIDIA GPU для Ollama.
+Важно: lyrics передаётся Whisper как initial_prompt — это подсказка для распознавания, не forced alignment. Точное выравнивание готового текста песни по аудио пока не реализовано. Для пения возможны пропуски, неверные слова и неточные или нулевые длительности.
 
-## Технологии
-
-- Python 3.12
-- FastAPI
-- Pydantic
-- Ollama
-- DeepSeek-R1 7B
-- Pollinations
-- Requests
-- PyYAML
-- Docker / Docker Compose
-
-## Архитектура
-
-```text
+Технологии
+- Python 3.12, FastAPI, Pydantic, Uvicorn
+- Ollama, DeepSeek-R1 7B
+- Pollinations, Requests
+- faster-whisper 1.2.1, PyAV 15.1.0
+- PyYAML, python-multipart
+- Docker, Docker Compose
+Архитектура
 Client Application
-        |
-        v
+       |
+       v
      FastAPI
-        |
-        v
-GenerationService
-        |
-        v
-AI Client Protocol
-        |
-        +-------------------+
-        |                   |
-        v                   v
-   OllamaClient     PollinationsClient
-        |                   |
-        v                   v
-   Local LLM          Image API
-```
-
-Проект использует разделение на несколько уровней:
-
-- **API** — HTTP-маршруты, схемы запросов и ответов.
-- **Service** — сервисный слой генерации.
-- **AI Clients** — взаимодействие с конкретными провайдерами.
-- **Config** — конфигурация приложения.
-
-Клиенты реализуют соответствующие интерфейсы `Protocol`, что позволяет заменять провайдеров без изменения сервисного слоя.
-
-## Структура проекта
-
-```text
+       |
+       +---------------------------+
+       |                           |
+       v                           v
+Generation endpoints       /audio/transcribe
+       |                           |
+       v                           v
+GenerationService         TranscriptionService
+       |                           |
+       +---------------+           v
+       |               |       WhisperClient
+       v               v           |
+  OllamaClient   PollinationsClient v
+       |               |       faster-whisper
+       v               v
+   Local LLM       Image API
+Слои проекта:
+- API — маршруты, схемы запросов и ответов, зависимости и обработчики ошибок.
+- Service — бизнес-логика и измерение времени выполнения.
+- AI Clients — адаптеры конкретных моделей и провайдеров.
+- Config — конфигурация приложения.
+Структура проекта
 AI-Service/
 ├── api/
 │   ├── dependencies.py
 │   ├── exception_handlers.py
 │   ├── routes/
-│   │   └── generation.py
+│   │   ├── generation.py
+│   │   └── transcription.py
 │   └── schemas/
-│       └── generation.py
+│       ├── generation.py
+│       └── transcription.py
 ├── config/
 │   ├── config.yaml
 │   ├── dataclasses.py
@@ -79,9 +65,11 @@ AI-Service/
 │   ├── ai_clients/
 │   │   ├── ai_client_protocols.py
 │   │   ├── ollama_client.py
-│   │   └── pollinations_client.py
+│   │   ├── pollinations_client.py
+│   │   └── whisper_client.py
 │   ├── exceptions.py
-│   └── generation_service.py
+│   ├── generation_service.py
+│   └── transcription_service.py
 ├── .env.example
 ├── .dockerignore
 ├── .gitignore
@@ -90,195 +78,108 @@ AI-Service/
 ├── main.py
 ├── requirements.txt
 └── README.md
-```
-
-## Установка и запуск
-
-### Требования
-
-- Docker Desktop
-- Docker Compose
-- NVIDIA GPU с поддержкой CUDA — рекомендуется для локальных моделей
-- WSL2 — для запуска Docker с GPU на Windows
-
-### 1. Клонирование репозитория
-
-```bash
+Установка и запуск
+Требования
+- Docker Desktop и Docker Compose.
+- Для работы Ollama с GPU — совместимая NVIDIA GPU, драйверы и настроенный GPU-доступ в Docker/WSL2.
+- Доступ в интернет для первой загрузки моделей.
+1. Клонирование и настройка
 git clone <repository-url>
 cd AI-Service
-```
-
-### 2. Настройка окружения
-
-Создайте `.env` на основе `.env.example`:
-
-```env
+Создайте .env на основе .env.example:
 OLLAMA_BASE_URL=http://ollama:11434
-```
-
-Остальные настройки находятся в `config/config.yaml`.
-
-### 3. Запуск контейнеров
-
-```bash
+Остальные параметры находятся в config/config.yaml.
+2. Запуск
 docker compose up -d --build
-```
-
-### 4. Загрузка текстовой модели
-
-```bash
+Загрузите модель Ollama при первом запуске:
 docker compose exec ollama ollama pull deepseek-r1:7b
-```
-
-Модель сохраняется в Docker volume и не требует повторной загрузки при обычном перезапуске контейнеров.
-
-### 5. Проверка
-
-Swagger UI:
-
-`http://localhost:8001/docs`
-
-Проверка FastAPI:
-
-`http://localhost:8001/health`
-
-Проверка контейнеров:
-
-```bash
+Модель Whisper загружается автоматически при первом обращении к эндпоинту транскрипции. Её кэш сохраняется в Docker volume whisper_cache.
+3. Проверка
+- Swagger UI: http://localhost:8001/docs
+- Health check: http://localhost:8001/health
 docker compose ps
-```
-
-Проверка использования GPU:
-
-```bash
-docker compose exec ollama ollama ps
-```
-
-## API
-
-### Генерация текста
-
-**POST** `/api/v1/text/generate`
-
-Запрос:
-
-```json
+docker compose logs -f ai-service
+Остановка:
+docker compose down
+API
+Генерация текста
+POST /api/v1/text/generate
 {
   "prompt": "Напиши короткую историю о космосе."
 }
-```
-
 Ответ:
-
-```json
 {
   "text": "Сгенерированный текст..."
 }
-```
-
-### Генерация изображения
-
-**POST** `/api/v1/images/generate`
-
-Запрос:
-
-```json
+Генерация изображения
+POST /api/v1/images/generate
 {
   "prompt": "Cinematic mountain landscape at sunset",
   "width": 1024,
   "height": 1024
 }
-```
-
 Ответ:
-
-```json
 {
   "image_base64": "<base64-encoded-image>"
 }
-```
+Распознавание аудио
+POST /api/v1/audio/transcribe
 
-Изображение возвращается в виде строки Base64.
-
-Доступность генерации изображений зависит от используемого API Pollinations.
-
-### Проверка работоспособности
-
-**GET** `/health`
-
-Ответ:
-
-```json
+Тип запроса: multipart/form-data.
+- file — обязательный аудиофайл.
+- lyrics — необязательная строка с текстом песни; используется как подсказка Whisper.
+Пример запроса:
+curl -X POST "http://localhost:8001/api/v1/audio/transcribe" \
+  -F "file=@vocals.wav" \
+  -F "lyrics=Example lyrics for recognition"
+Пример ответа:
+{
+  "words": [
+    {"word": "Hello", "start": 1.2, "end": 1.55},
+    {"word": "world", "start": 1.55, "end": 2.1}
+  ]
+}
+В текущей конфигурации используется faster-whisper с пословными таймкодами (word_timestamps=True). Модель работает на CPU с int8; размер модели и язык задаются в YAML. Распознавание вокала, особенно в полной музыкальной композиции, может быть неточным.
+Проверка работоспособности
+GET /health
 {
   "status": "ok"
 }
-```
+Проверяется доступность FastAPI, но не готовность всех AI-моделей.
+Конфигурация
+Настройки находятся в config/config.yaml. Пример текущего блока Whisper:
+whisper:
+  name: "medium"
+  device: "cpu"
+  compute_type: "int8"
+  language: "en"
+  beam_size: 5
+language: null включает автоматическое определение языка. Для песен на известном языке рекомендуется указывать его явно.
 
-Этот маршрут проверяет работу FastAPI, но не готовность AI-моделей.
-
-## Обработка ошибок
-
-Для ошибок AI-провайдеров предусмотрены структурированные JSON-ответы.
-
-Пример:
-
-```json
+Для Ollama доступны название модели, URL, параметры генерации и таймауты. OLLAMA_BASE_URL можно переопределить переменной окружения.
+Обработка ошибок и логирование
+AI-ошибки обрабатываются централизованно. Пример:
 {
-  "error": "TEXT_MODEL_ERROR",
-  "detail": "Ошибка при генерации текста через Ollama"
+  "error": "AUDIO_TRANSCRIPTION_ERROR",
+  "detail": "Не удалось распознать аудиофайл"
 }
-```
-
 Основные HTTP-коды:
-
-- `200` — успешный запрос.
-- `422` — ошибка валидации входных данных.
-- `502` — ошибка взаимодействия с AI-провайдером.
-- `500` — необработанная внутренняя ошибка.
-
-## Логирование
-
-Сервис записывает информацию о начале и завершении генерации, продолжительности выполнения и возникающих ошибках.
-
+- 200 — успешный запрос.
+- 422 — ошибка валидации.
+- 502 — ошибка AI-клиента.
+- 500 — необработанная ошибка сервера.
 Просмотр логов:
-
-```bash
 docker compose logs -f ai-service
-```
-
-## Конфигурация
-
-Параметры моделей задаются в `config/config.yaml`.
-
-Для Ollama поддерживаются настройки:
-
-- Название модели.
-- Адрес сервера.
-- Temperature.
-- Top P.
-- Максимальное количество генерируемых токенов.
-- Таймауты подключения и чтения.
-
-Адрес Ollama может быть переопределён через `OLLAMA_BASE_URL`.
-
-## Назначение
-
-AI-Service разрабатывается как самостоятельный микросервис, который можно использовать в разных приложениях.
-
-Планируемые интеграции:
-
-- **VideoMaker** — генерация визуальных материалов для видео.
-- **PostGenerator** — генерация текстов и изображений для публикаций в социальных сетях.
-
-## Текущий статус
-
-**Версия:** 0.1.0 (MVP)
-
-Реализована базовая инфраструктура генерации текста и изображений.
-
+Назначение и планы
+AI-Service разрабатывается как самостоятельный микросервис для интеграции с другими приложениями:
+- VideoMaker — генерация визуальных материалов и синхронизация текста с аудио для lyric video.
+- PostGenerator — генерация текста и изображений для социальных сетей.
 Планируемые улучшения:
+- Forced alignment для точного сопоставления предоставленного текста песни с аудио.
+- Проверка качества и корректировка проблемных таймкодов.
+- Дополнительные AI-провайдеры и оптимизация производительности.
+- Актуализация документации и автоматические тесты.
+Статус
+Версия: 0.1.0 (MVP).
 
-- Поддержка дополнительных AI-провайдеров.
-- Расширение настроек генерации.
-- Оптимизация локальных моделей.
-- Интеграция с клиентскими приложениями.
+Реализованы генерация текста, генерация изображений и базовая транскрипция аудио. Forced alignment ещё не реализован.

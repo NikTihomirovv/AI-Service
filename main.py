@@ -7,11 +7,14 @@ from api.routes.generation import router as generation_router
 from api.exception_handlers import (
     text_model_error_handler,
     image_model_error_handler,
+    audio_transcription_error_handler
 )
 from service.exceptions import (
     TextModelError,
     ImageModelError,
+    AudioTranscriptionError
 )
+from api.routes.transcription import router as transcription_router
 
 
 setup_logging()
@@ -34,11 +37,22 @@ app.add_exception_handler(
     image_model_error_handler,
 )
 
+app.add_exception_handler(
+    AudioTranscriptionError,
+    audio_transcription_error_handler,
+)
+
 
 app.include_router(
     generation_router,
     prefix="/api/v1",
     tags=["Generation"],
+)
+
+app.include_router(
+    transcription_router,
+    prefix="/api/v1",
+    tags=["Transcription"],
 )
 
 

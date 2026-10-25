@@ -4,3 +4,7 @@ class TextModelError(Exception):
 
 class ImageModelError(Exception):
     """Ошибка при генерации изображения."""
+
+
+class AudioTranscriptionError(Exception):
+    """Ошибка при распознавании аудио."""

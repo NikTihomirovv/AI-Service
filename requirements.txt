@@ -2,3 +2,6 @@ fastapi
 uvicorn[standard]
 requests
 PyYAML
+faster-whisper==1.2.1
+av==15.1.0
+python-multipart
