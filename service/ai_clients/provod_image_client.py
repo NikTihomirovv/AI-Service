@@ -1,7 +1,7 @@
 
 import logging
 
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 
 from service.exceptions import ImageModelError
 
@@ -19,6 +19,7 @@ class ProvodImageClient:
             api_key=api_key,
             base_url=base_url,
             timeout=300.0,
+            max_retries=0,
         )
         self.model = model
         self.logger = logging.getLogger(__name__)
@@ -54,6 +55,17 @@ class ProvodImageClient:
 
             return image_base64
 
+        
+        except RateLimitError as exc:
+            self.logger.error(
+                "Provod AI rate limit: status=%s, response=%s",
+                exc.status_code,
+                exc.response.text[:1000],
+            )
+            raise ImageModelError(
+                "Provod AI: превышен лимит запросов или квота"
+            ) from exc
+
         except Exception as exc:
             self.logger.exception(
                 "Ошибка генерации изображения через Provod AI"
@@ -61,6 +73,7 @@ class ProvodImageClient:
             raise ImageModelError(
                 "Ошибка генерации изображения через Provod AI"
             ) from exc
+
 
     def close(self) -> None:
         self.client.close()
