@@ -1,18 +1,18 @@
 
+import os
 from collections.abc import Iterator
+from functools import lru_cache
 
 from fastapi import Depends
 
 from config.loader import load_config
 from service.ai_clients.ollama_client import OllamaClient
 from service.ai_clients.pollinations_client import PollinationsClient
-from service.generation_service import (
-    TextGenerationService,
-    ImageGenerationService,
-)
+from service.ai_clients.provod_image_client import ProvodImageClient
 from service.ai_clients.whisper_client import WhisperClient
+from service.generation_service import (ImageGenerationService,
+                                        TextGenerationService)
 from service.transcription_service import TranscriptionService
-from functools import lru_cache
 
 
 @lru_cache(maxsize=1)
@@ -35,16 +35,32 @@ def get_text_generation_service() -> Iterator[TextGenerationService]:
         client.close()
 
 
+
 def get_image_generation_service() -> Iterator[ImageGenerationService]:
-    """Создаёт сервис генерации изображений."""
+    """Выбирает провайдера генерации изображений."""
 
     config = load_config()
-    client = PollinationsClient(config.pollinations)
+
+    if config.image_provider == "provod":
+        client = ProvodImageClient(
+            api_key=os.environ["PROVOD_API_KEY"],
+            base_url=config.provod.base_url,
+            model=config.provod.model,
+        )
+
+    elif config.image_provider == "pollinations":
+        client = PollinationsClient(config.pollinations)
+
+    else:
+        raise ValueError(
+            f"Неизвестный провайдер: {config.image_provider}"
+        )
 
     try:
         yield ImageGenerationService(client)
     finally:
         client.close()
+
 
 
 def get_transcription_service() -> TranscriptionService:

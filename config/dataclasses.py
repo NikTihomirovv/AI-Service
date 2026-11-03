@@ -36,11 +36,19 @@ class WhisperConfig:
 
 
 @dataclass(frozen=True)
+class ProvodConfig:
+    base_url: str
+    model: str
+
+
+@dataclass(frozen=True)
 class AppConfig:
     """Общая конфигурация AI-Service."""
 
     ollama: OllamaConfig
     pollinations: PollinationsConfig
     whisper: WhisperConfig
+    image_provider: str
+    provod: ProvodConfig
 
 

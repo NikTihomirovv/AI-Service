@@ -3,12 +3,11 @@ import tempfile
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 
 from api.dependencies import get_transcription_service
 from api.schemas.transcription import TranscriptionResponse
 from service.transcription_service import TranscriptionService
-
 
 router = APIRouter()
 

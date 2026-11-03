@@ -7,7 +7,6 @@ from faster_whisper import WhisperModel
 from config.dataclasses import WhisperConfig
 from service.exceptions import AudioTranscriptionError
 
-
 logger = logging.getLogger(__name__)
 
 

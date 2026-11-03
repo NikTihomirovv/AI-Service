@@ -1,21 +1,14 @@
 
 from fastapi import FastAPI
 
-from config.logging import setup_logging
-
+from api.exception_handlers import (audio_transcription_error_handler,
+                                    image_model_error_handler,
+                                    text_model_error_handler)
 from api.routes.generation import router as generation_router
-from api.exception_handlers import (
-    text_model_error_handler,
-    image_model_error_handler,
-    audio_transcription_error_handler
-)
-from service.exceptions import (
-    TextModelError,
-    ImageModelError,
-    AudioTranscriptionError
-)
 from api.routes.transcription import router as transcription_router
-
+from config.logging import setup_logging
+from service.exceptions import (AudioTranscriptionError, ImageModelError,
+                                TextModelError)
 
 setup_logging()
 

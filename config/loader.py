@@ -4,13 +4,8 @@ from pathlib import Path
 
 import yaml
 
-from config.dataclasses import (
-    AppConfig,
-    OllamaConfig,
-    PollinationsConfig,
-    WhisperConfig,
-)
-
+from config.dataclasses import (AppConfig, OllamaConfig, PollinationsConfig,
+                                ProvodConfig, WhisperConfig)
 
 CONFIG_PATH = Path(__file__).resolve().parent / "config.yaml"
 
@@ -27,9 +22,11 @@ def load_config() -> AppConfig:
         "OLLAMA_BASE_URL",
         ollama_data["base_url"],
     )
-
+    
     return AppConfig(
         ollama=OllamaConfig(**ollama_data),
         pollinations=PollinationsConfig(**data["pollinations"]),
         whisper=WhisperConfig(**data["whisper"]),
+        image_provider=data["image_provider"],
+        provod=ProvodConfig(**data["provod"]),
     )

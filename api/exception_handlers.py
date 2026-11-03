@@ -4,12 +4,8 @@ import logging
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from service.exceptions import (
-    TextModelError,
-    ImageModelError,
-)
-from service.exceptions import AudioTranscriptionError
-
+from service.exceptions import (AudioTranscriptionError, ImageModelError,
+                                TextModelError)
 
 logger = logging.getLogger(__name__)
 

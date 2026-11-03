@@ -1,3 +1,5 @@
+image_provider: "provod"
+
 ollama:
   name: "deepseek-r1:7b"
   base_url: "http://ollama:11434"
@@ -19,3 +21,8 @@ whisper:
   compute_type: "int8"
   language: 'en'
   beam_size: 5
+
+
+provod:
+  base_url: "https://api.provod.ai/v1"
+  model: "openai/gpt-image-2"

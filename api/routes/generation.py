@@ -3,21 +3,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from api.dependencies import (
-    get_text_generation_service,
-    get_image_generation_service,
-)
-from api.schemas.generation import (
-    TextGenerationRequest,
-    TextGenerationResponse,
-    ImageGenerationRequest,
-    ImageGenerationResponse,
-)
-from service.generation_service import (
-    TextGenerationService,
-    ImageGenerationService,
-)
-
+from api.dependencies import (get_image_generation_service,
+                              get_text_generation_service)
+from api.schemas.generation import (ImageGenerationRequest,
+                                    ImageGenerationResponse,
+                                    TextGenerationRequest,
+                                    TextGenerationResponse)
+from service.generation_service import (ImageGenerationService,
+                                        TextGenerationService)
 
 router = APIRouter()
 

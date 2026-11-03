@@ -2,11 +2,8 @@
 import logging
 import time
 
-from service.ai_clients.ai_client_protocols import (
-    TextModelClientProtocol,
-    ImageModelClientProtocol,
-)
-
+from service.ai_clients.ai_client_protocols import (ImageModelClientProtocol,
+                                                    TextModelClientProtocol)
 
 logger = logging.getLogger(__name__)
 

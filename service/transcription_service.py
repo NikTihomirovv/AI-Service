@@ -2,10 +2,8 @@ import logging
 import time
 from pathlib import Path
 
-from service.ai_clients.ai_client_protocols import (
-    AudioTranscriptionClientProtocol,
-)
-
+from service.ai_clients.ai_client_protocols import \
+    AudioTranscriptionClientProtocol
 
 logger = logging.getLogger(__name__)
 
