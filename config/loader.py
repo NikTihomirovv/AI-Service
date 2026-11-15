@@ -28,5 +28,6 @@ def load_config() -> AppConfig:
         pollinations=PollinationsConfig(**data["pollinations"]),
         whisper=WhisperConfig(**data["whisper"]),
         image_provider=data["image_provider"],
+        text_provider=data["text_provider"],
         provod=ProvodConfig(**data["provod"]),
     )

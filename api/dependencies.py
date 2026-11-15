@@ -13,7 +13,7 @@ from service.ai_clients.whisper_client import WhisperClient
 from service.generation_service import (ImageGenerationService,
                                         TextGenerationService)
 from service.transcription_service import TranscriptionService
-
+from service.ai_clients.provod_text_client import ProvodTextClient
 
 @lru_cache(maxsize=1)
 def get_whisper_client() -> WhisperClient:
@@ -23,11 +23,27 @@ def get_whisper_client() -> WhisperClient:
     return WhisperClient(config.whisper)
 
 
+
 def get_text_generation_service() -> Iterator[TextGenerationService]:
-    """Создаёт сервис генерации текста."""
+    """Выбирает провайдера генерации текста."""
 
     config = load_config()
-    client = OllamaClient(config.ollama)
+
+    if config.text_provider == "provod":
+        client = ProvodTextClient(
+            api_key=os.environ["PROVOD_API_KEY"],
+            base_url=config.provod.base_url,
+            model=config.provod.text_model,
+        )
+
+    elif config.text_provider == "ollama":
+        client = OllamaClient(config.ollama)
+
+    else:
+        raise ValueError(
+            f"Неизвестный текстовый провайдер: "
+            f"{config.text_provider}"
+        )
 
     try:
         yield TextGenerationService(client)

@@ -1,4 +1,6 @@
 image_provider: "provod"
+text_provider: "provod"
+
 
 ollama:
   name: "deepseek-r1:7b"
@@ -26,3 +28,4 @@ whisper:
 provod:
   base_url: "https://api.provod.ai/v1"
   model: "openai/gpt-image-2"
+  text_model: "anthropic/claude-sonnet-5"
